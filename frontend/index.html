@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAJA Video Grabber</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header with dark logo band -->
+    <header>
+      <div class="logo-band">
+        <img src="/static/waja-logo.png" alt="WAJA" class="logo">
+      </div>
+      <p class="subtitle">Video Grabber</p>
+    </header>
+
+    <main>
+      <!-- URL Input -->
+      <div class="url-bar">
+        <div class="url-input-wrap">
+          <svg class="url-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"/></svg>
+          <input type="text" id="url-input" placeholder="Paste a video URL...">
+        </div>
+        <button id="fetch-btn">
+          <span class="btn-text">Fetch</span>
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+
+      <!-- Supported platforms hint -->
+      <div class="platforms-hint">
+        YouTube &middot; TikTok &middot; Instagram &middot; Facebook
+      </div>
+
+      <!-- Error message -->
+      <div id="error-area" class="error-area hidden"></div>
+
+      <!-- Preview Card -->
+      <div id="preview-card" class="preview-card hidden">
+        <div class="preview-thumb-wrap">
+          <img id="preview-thumb" class="preview-thumb" src="" alt="Thumbnail">
+          <span id="preview-duration" class="duration-badge"></span>
+        </div>
+        <div class="preview-info">
+          <h2 id="preview-title"></h2>
+          <div class="preview-meta">
+            <span id="preview-author"></span>
+            <span id="preview-platform" class="platform-badge"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Format Selector + Options -->
+      <div id="format-section" class="format-section hidden">
+        <label class="section-label">Format</label>
+        <div class="format-options">
+          <label class="format-option">
+            <input type="radio" name="format" value="best" checked>
+            <span class="format-option-inner">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="format-icon"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+              Best MP4
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="format" value="1080p">
+            <span class="format-option-inner">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="format-icon"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+              1080p MP4
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="format" value="720p">
+            <span class="format-option-inner">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="format-icon"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+              720p MP4
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="format" value="mp3">
+            <span class="format-option-inner">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="format-icon"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/></svg>
+              Audio MP3
+            </span>
+          </label>
+        </div>
+
+        <!-- Browser Login Toggle -->
+        <div class="browser-login">
+          <div class="toggle-row">
+            <label class="toggle-label" for="cookies-toggle">
+              Use a specific browser's login
+              <span class="toggle-hint">Chrome cookies are used automatically for Instagram &amp; Facebook</span>
+            </label>
+            <input type="checkbox" id="cookies-toggle" class="toggle-checkbox">
+          </div>
+          <div id="browser-select-wrap" class="browser-select-wrap hidden">
+            <select id="browser-select">
+              <option value="chrome">Chrome</option>
+              <option value="safari">Safari</option>
+              <option value="firefox">Firefox</option>
+              <option value="edge">Edge</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="download-btn" class="download-btn">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="dl-icon"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          Download
+        </button>
+      </div>
+
+      <!-- Progress Area -->
+      <div id="progress-area" class="progress-area hidden">
+        <div class="progress-header">
+          <span id="progress-label">Downloading…</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div id="progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-details">
+          <span id="progress-speed"></span>
+          <span id="progress-eta"></span>
+        </div>
+      </div>
+
+      <!-- Done message -->
+      <div id="done-area" class="done-area hidden">
+        <svg viewBox="0 0 20 20" fill="currentColor" class="done-icon"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <span id="done-text">Download complete!</span>
+      </div>
+
+      <!-- History -->
+      <div class="history-section">
+        <button id="history-toggle" class="panel-toggle">
+          <span>History</span>
+          <span id="history-arrow" class="arrow">&#9662;</span>
+        </button>
+        <div id="history-list" class="history-list hidden"></div>
+      </div>
+
+      <!-- Settings -->
+      <div class="settings-section">
+        <button id="settings-toggle" class="panel-toggle">
+          <span>Settings</span>
+          <span id="settings-arrow" class="arrow">&#9662;</span>
+        </button>
+        <div id="settings-panel" class="settings-panel hidden">
+          <div class="setting-row">
+            <label class="setting-label">Download folder</label>
+            <div class="setting-input-row">
+              <input type="text" id="download-folder" class="setting-input" placeholder="~/Downloads/VideoGrab" readonly>
+              <button id="pick-folder-btn" class="setting-btn">Choose Folder…</button>
+            </div>
+            <div id="folder-saved" class="setting-saved hidden">Saved!</div>
+          </div>
+          <div class="setting-row">
+            <label class="setting-label">Default format</label>
+            <select id="default-format" class="setting-select">
+              <option value="best">Best MP4</option>
+              <option value="1080p">1080p MP4</option>
+              <option value="720p">720p MP4</option>
+              <option value="mp3">Audio MP3</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <button id="open-folder-btn" class="open-folder-btn">Open Downloads Folder</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>WAJA &middot; Internal Tool</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
