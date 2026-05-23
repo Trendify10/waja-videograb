@@ -55,16 +55,16 @@ else
   echo "✓ config.json already exists"
 fi
 
-# 6. Create desktop .app using AppleScript (reliable on all macOS versions)
-APP_PATH="$HOME/Desktop/WAJA Video Grabber.app"
-rm -rf "$APP_PATH"
-
-osacompile -o "$APP_PATH" -e "do shell script \"bash '$PROJECT_DIR/scripts/launch-background.sh' &> /dev/null &\""
-
-# Set the custom icon
-cp "$PROJECT_DIR/frontend/icon.icns" "$APP_PATH/Contents/Resources/applet.icns"
-touch "$APP_PATH"
-echo "✓ Desktop app created"
+# 6. Create desktop launcher
+LAUNCHER_PATH="$HOME/Desktop/WAJA Video Grabber.command"
+cat > "$LAUNCHER_PATH" << LAUNCHER
+#!/bin/bash
+export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
+cd "$PROJECT_DIR"
+bash scripts/launch-mac.command
+LAUNCHER
+chmod +x "$LAUNCHER_PATH"
+echo "✓ Desktop launcher created"
 
 echo ""
 echo "=== Setup complete! ==="
