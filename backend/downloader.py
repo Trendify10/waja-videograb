@@ -14,29 +14,18 @@ HISTORY_PATH = Path(__file__).resolve().parent.parent / "history.json"
 # In-memory job tracking
 jobs: dict[str, dict] = {}
 
-# Robust format strings with full fallback chains.
-# The key insight: Instagram/Facebook/TikTok often serve a single combined
-# mp4 — they don't have separate video-only and audio-only streams.
-# The fallback chain must end with formats that catch these combined streams.
-# Prefer H.264 + AAC so files play natively in QuickTime on macOS.
-# VP9/AV1 downloads are technically valid but QuickTime can't play them.
-_FORMAT_SORT = ["vcodec:h264", "acodec:aac"]
-
 FORMAT_OPTIONS = {
     "best": {
         "format": "bv*+ba/b",
         "merge_output_format": "mp4",
-        "format_sort": _FORMAT_SORT,
     },
     "1080p": {
         "format": "bv*[height<=1080]+ba/b[height<=1080]/bv*+ba/b",
         "merge_output_format": "mp4",
-        "format_sort": _FORMAT_SORT,
     },
     "720p": {
         "format": "bv*[height<=720]+ba/b[height<=720]/bv*+ba/b",
         "merge_output_format": "mp4",
-        "format_sort": _FORMAT_SORT,
     },
     "mp3": {
         "format": "bestaudio/best",
