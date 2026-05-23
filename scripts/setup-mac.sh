@@ -87,7 +87,42 @@ PLIST
 cat > "$APP_PATH/Contents/MacOS/launcher" << LAUNCHER
 #!/bin/bash
 export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
-exec "$PROJECT_DIR/scripts/launch-background.sh"
+
+PROJECT="$PROJECT_DIR"
+LOG="\$PROJECT/logs/launch.log"
+PID_FILE="\$PROJECT/logs/server.pid"
+mkdir -p "\$PROJECT/logs"
+
+# If server already running, just open browser
+if [ -f "\$PID_FILE" ] && kill -0 \$(cat "\$PID_FILE") 2>/dev/null; then
+  open "http://127.0.0.1:8000"
+  exit 0
+fi
+
+# Kill anything on port 8000
+lsof -ti:8000 | xargs kill 2>/dev/null
+sleep 0.5
+
+cd "\$PROJECT"
+
+# Update code and deps
+[ -d .git ] && git pull --quiet 2>/dev/null
+source "\$PROJECT/venv/bin/activate"
+pip install -r requirements.txt --quiet 2>/dev/null
+pip install -U yt-dlp --quiet 2>/dev/null
+
+# Start server
+"\$PROJECT/venv/bin/uvicorn" backend.main:app --host 127.0.0.1 --port 8000 >> "\$LOG" 2>&1 &
+SERVER_PID=\$!
+echo "\$SERVER_PID" > "\$PID_FILE"
+
+# Open browser
+sleep 2
+open "http://127.0.0.1:8000"
+
+# Keep alive
+wait "\$SERVER_PID"
+rm -f "\$PID_FILE"
 LAUNCHER
 
 chmod +x "$APP_PATH/Contents/MacOS/launcher"
