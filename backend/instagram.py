@@ -11,9 +11,12 @@ import requests
 from yt_dlp.cookies import extract_cookies_from_browser
 
 
-def _get_session() -> requests.Session:
-    """Create a requests session with Chrome Instagram cookies."""
-    jar = extract_cookies_from_browser("chrome")
+def _get_session() -> requests.Session | None:
+    """Create a requests session with Chrome Instagram cookies. Returns None on failure."""
+    try:
+        jar = extract_cookies_from_browser("chrome")
+    except Exception:
+        return None
     session = requests.Session()
     for cookie in jar:
         if "instagram" in cookie.domain:
@@ -47,7 +50,10 @@ def _fetch_media_info(session: requests.Session, media_id: int) -> dict | None:
     resp = session.get(url)
     if resp.status_code != 200:
         return None
-    data = resp.json()
+    try:
+        data = resp.json()
+    except Exception:
+        return None
     items = data.get("items", [])
     return items[0] if items else None
 
@@ -63,6 +69,8 @@ def instagram_extract_info(url: str) -> dict | None:
         return None
 
     session = _get_session()
+    if not session:
+        return None
     media_id = _shortcode_to_media_id(shortcode)
     item = _fetch_media_info(session, media_id)
     if not item:
@@ -100,10 +108,12 @@ def instagram_download(url: str, download_folder: str, progress_cb=None) -> dict
         raise ValueError("Could not extract Instagram shortcode from URL")
 
     session = _get_session()
+    if not session:
+        raise ValueError("Could not read browser cookies. Make sure you're logged into Instagram in Chrome.")
     media_id = _shortcode_to_media_id(shortcode)
     item = _fetch_media_info(session, media_id)
     if not item:
-        raise ValueError("Could not fetch Instagram media info. The post may be private or deleted.")
+        raise ValueError("Could not fetch Instagram media info. Make sure you're logged into Instagram in Chrome.")
 
     video_versions = item.get("video_versions", [])
     if not video_versions:
