@@ -69,8 +69,9 @@ ASCRIPT
 osacompile -o "$APP_PATH" "$SCRIPT_TMP"
 rm -f "$SCRIPT_TMP"
 
-# Set custom icon
+# Set custom icon (remove Assets.car so macOS uses applet.icns)
 cp "$PROJECT_DIR/frontend/icon.icns" "$APP_PATH/Contents/Resources/applet.icns"
+rm -f "$APP_PATH/Contents/Resources/Assets.car"
 touch "$APP_PATH"
 echo "✓ Desktop app created"
 
