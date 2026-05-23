@@ -87,9 +87,7 @@ PLIST
 cat > "$APP_PATH/Contents/MacOS/launcher" << LAUNCHER
 #!/bin/bash
 export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
-"$PROJECT_DIR/scripts/launch-background.sh" &
-disown
-exit 0
+exec "$PROJECT_DIR/scripts/launch-background.sh"
 LAUNCHER
 
 chmod +x "$APP_PATH/Contents/MacOS/launcher"
