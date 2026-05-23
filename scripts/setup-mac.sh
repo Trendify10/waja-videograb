@@ -55,78 +55,15 @@ else
   echo "✓ config.json already exists"
 fi
 
-# 6. Create desktop .app bundle (no Terminal window on launch)
+# 6. Create desktop .app using AppleScript (reliable on all macOS versions)
 APP_PATH="$HOME/Desktop/WAJA Video Grabber.app"
 rm -rf "$APP_PATH"
-mkdir -p "$APP_PATH/Contents/MacOS"
-mkdir -p "$APP_PATH/Contents/Resources"
 
-cat > "$APP_PATH/Contents/Info.plist" << 'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key>
-  <string>WAJA Video Grabber</string>
-  <key>CFBundleDisplayName</key>
-  <string>WAJA Video Grabber</string>
-  <key>CFBundleIdentifier</key>
-  <string>com.waja.videograbber</string>
-  <key>CFBundleVersion</key>
-  <string>1.0</string>
-  <key>CFBundleIconFile</key>
-  <string>AppIcon</string>
-  <key>CFBundleExecutable</key>
-  <string>launcher</string>
-  <key>LSUIElement</key>
-  <true/>
-</dict>
-</plist>
-PLIST
+osacompile -o "$APP_PATH" -e "do shell script \"bash '$PROJECT_DIR/scripts/launch-background.sh' &> /dev/null &\""
 
-cat > "$APP_PATH/Contents/MacOS/launcher" << LAUNCHER
-#!/bin/bash
-export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
-
-PROJECT="$PROJECT_DIR"
-LOG="\$PROJECT/logs/launch.log"
-PID_FILE="\$PROJECT/logs/server.pid"
-mkdir -p "\$PROJECT/logs"
-
-# If server already running, just open browser
-if [ -f "\$PID_FILE" ] && kill -0 \$(cat "\$PID_FILE") 2>/dev/null; then
-  open "http://127.0.0.1:8000"
-  exit 0
-fi
-
-# Kill anything on port 8000
-lsof -ti:8000 | xargs kill 2>/dev/null
-sleep 0.5
-
-cd "\$PROJECT"
-
-# Update code and deps
-[ -d .git ] && git pull --quiet 2>/dev/null
-source "\$PROJECT/venv/bin/activate"
-pip install -r requirements.txt --quiet 2>/dev/null
-pip install -U yt-dlp --quiet 2>/dev/null
-
-# Start server
-"\$PROJECT/venv/bin/uvicorn" backend.main:app --host 127.0.0.1 --port 8000 >> "\$LOG" 2>&1 &
-SERVER_PID=\$!
-echo "\$SERVER_PID" > "\$PID_FILE"
-
-# Open browser
-sleep 2
-open "http://127.0.0.1:8000"
-
-# Keep alive
-wait "\$SERVER_PID"
-rm -f "\$PID_FILE"
-LAUNCHER
-
-chmod +x "$APP_PATH/Contents/MacOS/launcher"
-cp "$PROJECT_DIR/frontend/icon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
+# Set the custom icon
+cp "$PROJECT_DIR/frontend/icon.icns" "$APP_PATH/Contents/Resources/applet.icns"
+touch "$APP_PATH"
 echo "✓ Desktop app created"
 
 echo ""
