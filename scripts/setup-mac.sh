@@ -74,10 +74,12 @@ cat > "$APP_PATH/Contents/Info.plist" << 'PLIST'
   <string>com.waja.videograbber</string>
   <key>CFBundleVersion</key>
   <string>1.0</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>CFBundleExecutable</key>
   <string>launcher</string>
   <key>LSUIElement</key>
-  <false/>
+  <true/>
 </dict>
 </plist>
 PLIST
@@ -85,33 +87,13 @@ PLIST
 cat > "$APP_PATH/Contents/MacOS/launcher" << LAUNCHER
 #!/bin/bash
 export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
-PROJECT_DIR="$PROJECT_DIR"
-SCRIPT="\$PROJECT_DIR/scripts/launch-background.sh"
-PID_FILE="\$PROJECT_DIR/logs/server.pid"
-
-"\$SCRIPT" &
-BG_PID=\$!
-
-for i in {1..20}; do
-  [ -f "\$PID_FILE" ] && break
-  sleep 0.5
-done
-
-cleanup() {
-  if [ -f "\$PID_FILE" ]; then
-    kill \$(cat "\$PID_FILE") 2>/dev/null
-    rm -f "\$PID_FILE"
-  fi
-  kill "\$BG_PID" 2>/dev/null
-  exit 0
-}
-trap cleanup EXIT INT TERM
-
-osascript -e 'repeat' -e 'delay 3600' -e 'end repeat' &
-wait "\$BG_PID"
+"$PROJECT_DIR/scripts/launch-background.sh" &
+disown
+exit 0
 LAUNCHER
 
 chmod +x "$APP_PATH/Contents/MacOS/launcher"
+cp "$PROJECT_DIR/frontend/icon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
 echo "✓ Desktop app created"
 
 echo ""
