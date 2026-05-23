@@ -59,9 +59,12 @@ def extract_info(url: str, cookies_browser: str | None = None) -> dict:
 
     # Instagram fallback — yt-dlp's extractor is broken upstream
     if is_instagram_url(url):
-        result = instagram_extract_info(url)
-        if result:
-            return result
+        try:
+            result = instagram_extract_info(url)
+            if result:
+                return result
+        except Exception:
+            pass  # Fall through to yt-dlp
 
     ydl_opts = {
         "quiet": True,
@@ -74,12 +77,12 @@ def extract_info(url: str, cookies_browser: str | None = None) -> dict:
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-    except Exception as e:
+    except Exception:
         if is_instagram_url(url):
             raise ValueError(
                 "Instagram requires browser login. Make sure you're logged into "
-                "Instagram in Chrome and enable the 'Use browser login' toggle."
-            ) from e
+                "Instagram in Chrome, then close Chrome and try again."
+            )
         raise
 
     # Detect platform from extractor name
@@ -223,7 +226,13 @@ def _run_download(job_id: str, url: str, fmt: str, cookies_browser: str | None):
 
     except Exception as e:
         job["state"] = "error"
-        job["error"] = str(e)
+        if is_instagram_url(url):
+            job["error"] = (
+                "Instagram requires browser login. Make sure you're logged into "
+                "Instagram in Chrome, then close Chrome and try again."
+            )
+        else:
+            job["error"] = str(e)
 
 
 def _detect_platform(info: dict) -> str:
