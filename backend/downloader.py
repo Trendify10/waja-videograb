@@ -82,8 +82,16 @@ def extract_info(url: str, cookies_browser: str | None = None) -> dict:
 
     _add_cookies(ydl_opts, url, cookies_browser)
 
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except Exception as e:
+        if is_instagram_url(url):
+            raise ValueError(
+                "Instagram requires browser login. Make sure you're logged into "
+                "Instagram in Chrome and enable the 'Use browser login' toggle."
+            ) from e
+        raise
 
     # Detect platform from extractor name
     extractor = (info.get("extractor") or info.get("extractor_key") or "").lower()
